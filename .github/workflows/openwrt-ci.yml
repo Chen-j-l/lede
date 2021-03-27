@@ -1,18 +1,20 @@
+#
+# This is free software, lisence use MIT.
+# 
+# Copyright (C) 2019 P3TERX <https://p3terx.com>
+# Copyright (C) 2020 KFERMercer <KFER.Mercer@gmail.com>
 # 
 # <https://github.com/KFERMercer/OpenWrt-CI>
 #
-# Copyright (C) 2019 P3TERX
-#
-# Copyright (C) 2020 KFERMercer
-#
+
 name: OpenWrt-CI
 
 on:
-  #schedule:
-    #- cron: 0 20 * * *
   push:
     branches: 
       - master
+  # schedule:
+  #   - cron: 0 20 * * *
   release:
     types: [published]
 
@@ -41,25 +43,226 @@ jobs:
           sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
           sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php* android*
           sudo -E apt-get update
-          sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf swig
+          sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf swig libtinfo5
           sudo -E apt-get -y autoremove --purge
           sudo -E apt-get clean
+
+          # sudo mkdir -p -m 777 /mnt/openwrt/bin /mnt/openwrt/build_dir/host /mnt/openwrt/build_dir/hostpkg /mnt/openwrt/dl /mnt/openwrt/feeds /mnt/openwrt/staging_dir
+          # ln -s /mnt/openwrt/bin ./bin
+          # mkdir -p ./build_dir
+          # ln -s -f /mnt/openwrt/build_dir/host ./build_dir/host
+          # ln -s -f /mnt/openwrt/build_dir/hostpkg ./build_dir/hostpkg
+          # ln -s /mnt/openwrt/dl ./dl
+          # ln -s /mnt/openwrt/feeds ./feeds
+          # ln -s /mnt/openwrt/staging_dir ./staging_dir
 
           df -h
 
       - name: Update feeds
         run: |
-          sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
       - name: Generate configuration file
-        run: make defconfig
+        run: |
+          rm -f ./.config*
+          touch ./.config
+
+          #
+          # 在 cat >> .config <<EOF 到 EOF 之间粘贴你的编译配置, 需注意缩进关系
+          # 例如:
+
+          cat >> .config <<EOF
+          CONFIG_TARGET_x86=y
+          CONFIG_TARGET_x86_64=y
+          CONFIG_TARGET_x86_64_DEVICE_generic=y
+          CONFIG_LIBCURL_COOKIES=y
+          CONFIG_LIBCURL_FILE=y
+          CONFIG_LIBCURL_FTP=y
+          CONFIG_LIBCURL_HTTP=y
+          CONFIG_LIBCURL_MBEDTLS=y
+          CONFIG_LIBCURL_NO_SMB="!"
+          CONFIG_LIBCURL_PROXY=y
+          CONFIG_LIBMBEDTLS_HAVE_SSE2=y
+          CONFIG_PACKAGE_UnblockNeteaseMusic=m
+          CONFIG_PACKAGE_UnblockNeteaseMusicGo=m
+          CONFIG_PACKAGE_adblock=m
+          CONFIG_PACKAGE_adbyby=m
+          CONFIG_PACKAGE_btrfs-progs=m
+          CONFIG_PACKAGE_ca-bundle=m
+          CONFIG_PACKAGE_cgroupfs-mount=m
+          CONFIG_PACKAGE_containerd=m
+          CONFIG_PACKAGE_coreutils=m
+          CONFIG_PACKAGE_coreutils-sort=m
+          CONFIG_PACKAGE_docker-ce=m
+          CONFIG_PACKAGE_etherwake=m
+          CONFIG_PACKAGE_ip-full=m
+          CONFIG_PACKAGE_ip-tiny=y
+          CONFIG_PACKAGE_ipset=m
+          CONFIG_PACKAGE_iptables-mod-extra=m
+          CONFIG_PACKAGE_iptables-mod-ipsec=m
+          CONFIG_PACKAGE_kmod-br-netfilter=m
+          CONFIG_PACKAGE_kmod-crypto-acompress=m
+          CONFIG_PACKAGE_kmod-crypto-cbc=m
+          CONFIG_PACKAGE_kmod-crypto-deflate=m
+          CONFIG_PACKAGE_kmod-crypto-des=m
+          CONFIG_PACKAGE_kmod-crypto-echainiv=m
+          CONFIG_PACKAGE_kmod-crypto-hmac=m
+          CONFIG_PACKAGE_kmod-crypto-md5=m
+          CONFIG_PACKAGE_kmod-dax=m
+          CONFIG_PACKAGE_kmod-dm=m
+          CONFIG_PACKAGE_kmod-fast-classifier=m
+          CONFIG_PACKAGE_kmod-fs-btrfs=m
+          CONFIG_PACKAGE_kmod-ikconfig=m
+          CONFIG_PACKAGE_kmod-ipsec=m
+          CONFIG_PACKAGE_kmod-ipsec4=m
+          CONFIG_PACKAGE_kmod-ipsec6=m
+          CONFIG_PACKAGE_kmod-ipt-extra=m
+          CONFIG_PACKAGE_kmod-ipt-ipsec=m
+          CONFIG_PACKAGE_kmod-iptunnel4=m
+          CONFIG_PACKAGE_kmod-iptunnel6=m
+          CONFIG_PACKAGE_kmod-lib-crc32c=m
+          CONFIG_PACKAGE_kmod-lib-lzo=m
+          CONFIG_PACKAGE_kmod-lib-raid6=m
+          CONFIG_PACKAGE_kmod-lib-xor=m
+          CONFIG_PACKAGE_kmod-lib-zlib-deflate=m
+          CONFIG_PACKAGE_kmod-lib-zlib-inflate=m
+          CONFIG_PACKAGE_kmod-lib-zstd=m
+          CONFIG_PACKAGE_kmod-nf-ipvs=m
+          CONFIG_PACKAGE_kmod-shortcut-fe=m
+          CONFIG_PACKAGE_kmod-tcp-bbr=m
+          CONFIG_PACKAGE_kmod-tun=m
+          CONFIG_PACKAGE_kmod-udptunnel4=y
+          CONFIG_PACKAGE_kmod-udptunnel6=y
+          CONFIG_PACKAGE_kmod-veth=m
+          CONFIG_PACKAGE_kmod-wireguard=y
+          CONFIG_PACKAGE_libatomic=m
+          CONFIG_PACKAGE_libattr=m
+          CONFIG_PACKAGE_libcap=m
+          CONFIG_PACKAGE_libcares=m
+          CONFIG_PACKAGE_libcurl=m
+          CONFIG_PACKAGE_libdevmapper=m
+          CONFIG_PACKAGE_libelf=m
+          CONFIG_PACKAGE_libevent2=m
+          CONFIG_PACKAGE_libgmp=m
+          CONFIG_PACKAGE_libhttp-parser=m
+          CONFIG_PACKAGE_libiconv-full=m
+          CONFIG_PACKAGE_libipset=m
+          CONFIG_PACKAGE_liblzo=m
+          CONFIG_PACKAGE_libmbedtls=m
+          CONFIG_PACKAGE_libminiupnpc=m
+          CONFIG_PACKAGE_libmnl=m
+          CONFIG_PACKAGE_libmount=m
+          CONFIG_PACKAGE_libnatpmp=m
+          CONFIG_PACKAGE_libnetwork=m
+          CONFIG_PACKAGE_libnghttp2=m
+          CONFIG_PACKAGE_libstdcpp=m
+          CONFIG_PACKAGE_libuv=m
+          CONFIG_PACKAGE_libwebsockets-full=m
+          CONFIG_PACKAGE_luci-app-accesscontrol=m
+          CONFIG_PACKAGE_luci-app-adblock=m
+          CONFIG_PACKAGE_luci-app-adbyby-plus=m
+          CONFIG_PACKAGE_luci-app-arpbind=m
+          CONFIG_PACKAGE_luci-app-ddns=m
+          CONFIG_PACKAGE_luci-app-docker=m
+          CONFIG_PACKAGE_luci-app-ipsec-vpnd=m
+          CONFIG_PACKAGE_luci-app-jd-dailybonus=m
+          CONFIG_PACKAGE_luci-app-sfe=m
+          CONFIG_PACKAGE_luci-app-softethervpn=m
+          CONFIG_PACKAGE_luci-app-tinyproxy=m
+          CONFIG_PACKAGE_luci-app-transmission=m
+          CONFIG_PACKAGE_luci-app-ttyd=m
+          CONFIG_PACKAGE_luci-app-unblockmusic=m
+          CONFIG_PACKAGE_luci-app-upnp=m
+          # CONFIG_PACKAGE_luci-app-uugamebooster is not set
+          CONFIG_PACKAGE_luci-app-v2ray-server=m
+          CONFIG_PACKAGE_luci-app-vlmcsd=m
+          CONFIG_PACKAGE_luci-app-vsftpd=m
+          CONFIG_PACKAGE_luci-app-webadmin=m
+          CONFIG_PACKAGE_luci-app-wireguard=y
+          CONFIG_PACKAGE_luci-app-wol=m
+          CONFIG_PACKAGE_luci-app-wrtbwmon=m
+          CONFIG_PACKAGE_luci-app-xlnetacc=m
+          CONFIG_PACKAGE_luci-app-zerotier=m
+          CONFIG_PACKAGE_luci-i18n-accesscontrol-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-adblock-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-adbyby-plus-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-arpbind-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-ddns-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-docker-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-ipsec-vpnd-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-sfe-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-softethervpn-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-tinyproxy-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-transmission-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-ttyd-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-unblockmusic-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-upnp-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-v2ray-server-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-vlmcsd-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-vsftpd-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-webadmin-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-wireguard-zh-cn=y
+          CONFIG_PACKAGE_luci-i18n-wol-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-wrtbwmon-zh-cn=m
+          CONFIG_PACKAGE_luci-i18n-zerotier-zh-cn=m
+          CONFIG_PACKAGE_luci-proto-wireguard=y
+          CONFIG_PACKAGE_luci-theme-argon=m
+          CONFIG_PACKAGE_luci-theme-material=m
+          CONFIG_PACKAGE_luci-theme-netgear=m
+          CONFIG_PACKAGE_miniupnpd=m
+          CONFIG_PACKAGE_mount-utils=m
+          CONFIG_PACKAGE_node=m
+          CONFIG_PACKAGE_pdnsd-alt=m
+          CONFIG_PACKAGE_runc=m
+          CONFIG_PACKAGE_softethervpn5-bridge=m
+          CONFIG_PACKAGE_softethervpn5-client=m
+          CONFIG_PACKAGE_softethervpn5-libs=m
+          CONFIG_PACKAGE_softethervpn5-server=m
+          CONFIG_PACKAGE_strongswan=m
+          CONFIG_PACKAGE_strongswan-charon=m
+          CONFIG_PACKAGE_strongswan-ipsec=m
+          CONFIG_PACKAGE_strongswan-minimal=m
+          CONFIG_PACKAGE_strongswan-mod-aes=m
+          CONFIG_PACKAGE_strongswan-mod-gmp=m
+          CONFIG_PACKAGE_strongswan-mod-hmac=m
+          CONFIG_PACKAGE_strongswan-mod-kernel-netlink=m
+          CONFIG_PACKAGE_strongswan-mod-nonce=m
+          CONFIG_PACKAGE_strongswan-mod-pubkey=m
+          CONFIG_PACKAGE_strongswan-mod-random=m
+          CONFIG_PACKAGE_strongswan-mod-sha1=m
+          CONFIG_PACKAGE_strongswan-mod-socket-default=m
+          CONFIG_PACKAGE_strongswan-mod-stroke=m
+          CONFIG_PACKAGE_strongswan-mod-updown=m
+          CONFIG_PACKAGE_strongswan-mod-x509=m
+          CONFIG_PACKAGE_strongswan-mod-xauth-generic=m
+          CONFIG_PACKAGE_strongswan-mod-xcbc=m
+          CONFIG_PACKAGE_tini=m
+          CONFIG_PACKAGE_tinyproxy=m
+          CONFIG_PACKAGE_transmission-daemon-openssl=m
+          CONFIG_PACKAGE_transmission-web-control=m
+          CONFIG_PACKAGE_ttyd=m
+          CONFIG_PACKAGE_unzip=m
+          # CONFIG_PACKAGE_uugamebooster is not set
+          CONFIG_PACKAGE_vlmcsd=m
+          CONFIG_PACKAGE_vsftpd-alt=m
+          CONFIG_PACKAGE_wireguard-tools=y
+          CONFIG_PACKAGE_wol=m
+          CONFIG_PACKAGE_zerotier=m
+          EOF
+
+          #
+          # ===============================================================
+          # 
+
+          sed -i 's/^[ \t]*//g' ./.config
+          make defconfig
 
       - name: Make download
         run: |
-          make download -j8
-          find dl -size -1024c -exec rm -f {} \;
+          make download -j8 || make download -j1 V=s
+          rm -rf $(find ./dl/ -size -1024c)
+          df -h
 
       - name: Compile firmware
         run: |
@@ -69,9 +272,8 @@ jobs:
           echo "======================="
           df -h
           echo "======================="
-          du -h --max-depth=1 ./ --exclude=build_dir --exclude=bin
-          du -h --max-depth=1 ./build_dir
-          du -h --max-depth=1 ./bin
+          du -h ./ --max-depth=1
+          du -h /mnt/openwrt/ --max-depth=1 || true
 
       - name: Prepare artifact
         run: |
@@ -100,7 +302,6 @@ jobs:
         with:
           name: OpenWrt_firmware
           path: ./bin/targets/
-  
 
       - name: Upload release asset
         if: github.event == 'release'
